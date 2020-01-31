@@ -250,6 +250,13 @@ class InstanceScheduler:
             return inst_state, inst_type
 
         for region in self._regions:
+            
+            # maintenance_windows = self._load_maintenance_windows()
+            # for window in maintenance_windows:
+            #   # if the maintenance window is enabled and going to run in the next X minutes:
+            #   if window.enabled and window.next_run_time < 
+            #       get the target rules.
+            
 
             state_loaded = False
             instances = []
@@ -274,6 +281,10 @@ class InstanceScheduler:
                     continue
 
                 # get the schedule for this instance
+                #
+                # 2. RIGHT HERE, when we get the schedule, we need to add another period to the schedule if the instance is part of a maintenance window
+                # For each main.window, check if this instance matches the target rules, if so, add a period to the schedule.
+                #
                 instance_schedule = self._configuration.get_schedule(instance.schedule_name)
                 if not instance_schedule:
                     self._logger.warning(WARN_SKIPPING_UNKNOWN_SCHEDULE, instance.instance_str, region, instance.account,
@@ -285,6 +296,11 @@ class InstanceScheduler:
                                    instance_schedule.name)
 
                 # based on the schedule get the desired state and instance type for this instance
+                #
+                # 1. RIGHT HERE, we want to change the result of this method to say "STARTED" when it's part of an upcoming maintenance window.
+                #
+                # instance_schedule is probably your fully fleshed out schedule with periods, we need to add another period to that schedule
+                #
                 desired_state, desired_type = get_desired_state_and_type(instance_schedule, instance)
 
                 # get the  previous desired instance state

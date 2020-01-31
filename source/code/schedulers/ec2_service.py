@@ -284,13 +284,43 @@ class Ec2Service:
         state = instance["State"]["Code"] & 0XFF
         is_running = self.EC2_STATE_RUNNING == state
         is_terminated = state == Ec2Service.EC2_STATE_TERMINATED
+
+        # Get the name of the schedule from the instance
         schedule_name = tags.get(tagname)
 
+        # Get the name of the maintenance window for this specific instance
+        ### THIS TAG MIGHT BE A DELIMITED LIST, NEED TO HANDLE IT AS AN ARRAY
+        ssm_maintenance_window_for_this_instance = tags.get('tc:MaintenanceWindow')
+
         maintenance_window_schedule = None
+        
+        # Does the schedule_name from the instance match a defined schedule?
         schedule = config.schedules.get(schedule_name, None)
         if schedule is not None:
-            if schedule.use_maintenance_window and schedule.ssm_maintenance_window not in [None, ""]:
-                maintenance_window_schedule = self.ssm_maintenance_windows.get(schedule.ssm_maintenance_window, None)
+            # it does!
+
+            # if the schedule on the instance has the 'use_maintenance_window' flag set, two possibilities:
+            if schedule.use_maintenance_window 
+
+                # Possibility #1, the schedule has one specific maintenance window defined
+                if schedule.ssm_maintenance_window not in [None, ""]:
+                    # schedule.ssm_maintenance_window is the name of a maintenance window defined in a schedule 
+                    maintenance_window_schedule = self.ssm_maintenance_windows.get(schedule.ssm_maintenance_window, None)
+
+                # Possibility #2, the instance has a maintenance window set in it's tags
+                elif ssm_maintenance_window_for_this_instance not in [None, ""]:
+                    # FOR EACH MaintenanceWindow In that array, do any of them start in FREQUENCY
+                    for window in ssm_maintenance_windows_for_this_instance: 
+                        schedule = self.ssm_maintenance_windows.get(window, None)
+                        if schedule.start < (now + frequency_of_this_lambda):
+                            maintenance_window_schedule = schedule 
+                            break
+
+                # Possibility #3, the instance doesn't have the tag set, 
+                else:
+                    # scan the maintenance window rules, and see if this machine matches any of them.
+                    pass
+
                 if maintenance_window_schedule is None:
                     self._logger.error(ERR_MAINT_WINDOW_NOT_FOUND_OR_DISABLED, schedule.ssm_maintenance_window, schedule.name)
                     self._ssm_maintenance_windows[schedule.ssm_maintenance_window] = "NOT-FOUND"
