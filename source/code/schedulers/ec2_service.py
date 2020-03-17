@@ -299,7 +299,7 @@ class Ec2Service:
         if schedule is not None:
             # it does!
 
-            # if the schedule on the instance has the 'use_maintenance_window' flag set, two possibilities:
+            # if the schedule on the instance has the 'use_maintenance_window' flag set, three possibilities:
             if schedule.use_maintenance_window 
 
                 # Possibility #1, the schedule has one specific maintenance window defined

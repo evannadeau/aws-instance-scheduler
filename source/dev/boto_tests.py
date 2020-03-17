@@ -15,7 +15,7 @@ ssm_client.describe_maintenance_window_targets(
     WindowId='mw-059aaac63b89a5707'
 )
 
-ssm_client.describe_maintenance_windows(
+ActiveMaintWindows = ssm_client.describe_maintenance_windows(
     Filters=[
         {
             'Key': 'Enabled',
@@ -23,6 +23,8 @@ ssm_client.describe_maintenance_windows(
         }
     ]
 )
+
+for (MaintWindow in ActiveMaintWindows)
 
 
 
